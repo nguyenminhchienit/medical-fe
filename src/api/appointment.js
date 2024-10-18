@@ -48,3 +48,17 @@ export const getListTimeByDate = async (date, doctorId) => {
 
   return response;
 };
+
+export const zns = async (phone, dataT) => {
+  const data = {
+    phone: phone,
+    templateData: dataT,
+  };
+
+  try {
+    const response = await instance.post(`${baseURL}/send-zns`, data);
+    console.log("ZNS response:", response.data);
+  } catch (error) {
+    console.error("Error sending ZNS:", error);
+  }
+};

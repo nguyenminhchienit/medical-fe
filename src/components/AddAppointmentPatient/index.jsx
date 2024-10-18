@@ -21,11 +21,12 @@ import { DebounceSelect } from "../DeboundSelect";
 import { PlusOutlined, ReloadOutlined } from "@ant-design/icons";
 import AddPatientModal from "src/components/AddPatientModal";
 import dayjs from "dayjs";
-import { getUsers } from "src/api/user";
+import { getUserById } from "src/api/user";
 import {
   createAppointment,
   getListTimeByDate,
   updateAppointment,
+  zns,
 } from "src/api/appointment";
 import SelectSpecialty from "../SelectSpecialty";
 import { SelectDoctor } from "../SelectDoctor";
@@ -36,6 +37,8 @@ import {
   getSpecialtyName,
 } from "src/utils";
 import { formatDate } from "@fullcalendar/core";
+import { convertPhoneNumber } from "src/utils/convertSDT";
+import { nanoid } from "nanoid";
 
 export default function AddAppointmentPatient({
   visible,
@@ -54,6 +57,11 @@ export default function AddAppointmentPatient({
   const [listTimeSlots, setListTimeSlots] = useState([]);
   const [specialty, setSpecialty] = useState("");
   const [doctorId, setDoctorId] = useState("");
+  const [phone, setPhone] = useState("");
+
+  const handleChangePhone = (e) => {
+    setPhone(e.target.value);
+  };
 
   useEffect(() => {
     if (visible) {
@@ -134,6 +142,18 @@ export default function AddAppointmentPatient({
           notification.success({
             message: "Đặt lịch khám thành công",
           });
+
+          const getMe = await getUserById(
+            isPatient ? patient._id : values.patientId
+          );
+          const zaloNoti = await zns(convertPhoneNumber(phone), {
+            customer_name: getMe?.user?.fullName,
+            schedule_time:
+              selectedHour + " " + dayjs(values.date).format(FORMAT_DATE),
+            address: "Đại học Công nghệ TPHCM ( HUTECH )",
+            booking_code: nanoid(8),
+          });
+          console.log("zalo: ", zaloNoti);
           onFinish(result);
         }
       })
@@ -244,6 +264,19 @@ export default function AddAppointmentPatient({
               />
             </Form.Item>
           )}
+          <Form.Item
+            name="phone"
+            label="Số điện thoại"
+            rules={[
+              { required: true, message: "Vui lòng nhập số điện thoại!" },
+            ]}
+          >
+            <Input
+              placeholder="Số điện thoại"
+              value={phone}
+              onChange={handleChangePhone}
+            />
+          </Form.Item>
           <Form.Item
             label="Chọn chuyên khoa"
             name="specialty"
